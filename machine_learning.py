@@ -9,7 +9,6 @@ from sklearn.ensemble import AdaBoostClassifier
 from sklearn.neural_network import MLPClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier
-import numpy as np
 import pandas as pd
 
 
@@ -39,58 +38,14 @@ nb_model = GaussianNB()
 nn_model = MLPClassifier(alpha=1)
 kn_model = KNeighborsClassifier()
 
-# K-fold cross validation
+# Step 5: Train each model once
+# The original code looped over 5 folds, but each .fit() call starts from scratch,
+# so only the last fold's training was ever kept. Training once on that same split
+# gives identical models in about a fifth of the time.
 K = 5
-total = X.shape[0]
-index = int(total / K)
+index = int(X.shape[0] / K)
+X_train_final = X.iloc[:index * (K - 1)]
+Y_train_final = Y.iloc[:index * (K - 1)]
 
-# Create K-fold splits
-X_1_test = X.iloc[:index]
-X_1_train = X.iloc[index:]
-Y_1_test = Y.iloc[:index]
-Y_1_train = Y.iloc[index:]
-
-X_2_test = X.iloc[index:index*2]
-X_2_train = X.iloc[np.r_[:index, index*2:]]
-Y_2_test = Y.iloc[index:index*2]
-Y_2_train = Y.iloc[np.r_[:index, index*2:]]
-
-X_3_test = X.iloc[index*2:index*3]
-X_3_train = X.iloc[np.r_[:index*2, index*3:]]
-Y_3_test = Y.iloc[index*2:index*3]
-Y_3_train = Y.iloc[np.r_[:index*2, index*3:]]
-
-X_4_test = X.iloc[index*3:index*4]
-X_4_train = X.iloc[np.r_[:index*3, index*4:]]
-Y_4_test = Y.iloc[index*3:index*4]
-Y_4_train = Y.iloc[np.r_[:index*3, index*4:]]
-
-X_5_test = X.iloc[index*4:]
-X_5_train = X.iloc[:index*4]
-Y_5_test = Y.iloc[index*4:]
-Y_5_train = Y.iloc[:index*4]
-
-# Create lists for X and Y train/test sets
-X_train_list = [X_1_train, X_2_train, X_3_train, X_4_train, X_5_train]
-X_test_list = [X_1_test, X_2_test, X_3_test, X_4_test, X_5_test]
-Y_train_list = [Y_1_train, Y_2_train, Y_3_train, Y_4_train, Y_5_train]
-Y_test_list = [Y_1_test, Y_2_test, Y_3_test, Y_4_test, Y_5_test]
-
-# K-fold iteration (without evaluation)
-for i in range(0, K):
-    svm_model.fit(X_train_list[i], Y_train_list[i])
-    rf_model.fit(X_train_list[i], Y_train_list[i])
-    dt_model.fit(X_train_list[i], Y_train_list[i])
-    ab_model.fit(X_train_list[i], Y_train_list[i])
-    nb_model.fit(X_train_list[i], Y_train_list[i])
-    nn_model.fit(X_train_list[i], Y_train_list[i])
-    kn_model.fit(X_train_list[i], Y_train_list[i])
-
-# The predictions are made but not displayed or calculated for metrics
-svm_predictions = svm_model.predict(X_test_list[i])
-rf_predictions = rf_model.predict(X_test_list[i])
-dt_predictions = dt_model.predict(X_test_list[i])
-ab_predictions = ab_model.predict(X_test_list[i])
-nb_predictions = nb_model.predict(X_test_list[i])
-nn_predictions = nn_model.predict(X_test_list[i])
-kn_predictions = kn_model.predict(X_test_list[i])
+for model in (svm_model, rf_model, dt_model, ab_model, nb_model, nn_model, kn_model):
+    model.fit(X_train_final, Y_train_final)
