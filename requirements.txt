@@ -1,0 +1,8 @@
+streamlit
+requests
+beautifulsoup4
+pandas
+numpy
+scikit-learn==1.7.2
+matplotlib
+imbalanced-learn
